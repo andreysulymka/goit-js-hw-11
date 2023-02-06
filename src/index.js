@@ -1,2 +1,52 @@
+import './css/styles.css';
 import Notiflix from 'notiflix';
-import axios from 'axios';
+import Axios from 'axios';
+import SimpleLightbox from "simplelightbox";
+import { fetchPhoto } from './fetchphoto';
+
+const form = document.querySelector('.search-form');
+
+form.addEventListener('submit', onSubmit);
+function onSubmit(e) {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const inputValue = form.elements.searchQuery.value;
+  console.log(inputValue);
+  fetchPhoto(inputValue).then(({ hits }) => {
+    if (hits.length === 0) throw new Error('No data')
+   
+    return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
+  })
+    // .then((markup) => console.log(markup))
+    .then(updatePage)
+    .catch(onError)
+  .finally(() => form.reset())
+}
+
+
+function createMarkUp({ webformatURL, likes, views, comments, downloads }) {
+  return `<div class="photo-card">
+  <img src="${webformatURL}" alt="" loading="lazy" />
+  <div class="info">
+    <p class="info-item">
+      <b>Likes</b>${likes}
+    </p>
+    <p class="info-item">
+      <b>Views</b>
+    ${views}</p>
+    <p class="info-item">
+      <b>Comments</b>${comments}
+    </p>
+    <p class="info-item">
+      <b>Downloads</b>${downloads}
+    </p>
+  </div>
+</div>`
+};
+
+function updatePage(markup) {
+  document.querySelector('.gallery').innerHTML = markup
+} 
+function onError() {
+  Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
+}
