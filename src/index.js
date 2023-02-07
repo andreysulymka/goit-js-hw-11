@@ -2,26 +2,45 @@ import './css/styles.css';
 import Notiflix from 'notiflix';
 import Axios from 'axios';
 import SimpleLightbox from "simplelightbox";
-import { fetchPhoto } from './fetchphoto';
+import NewsApi from './fetchphoto';
 
 const form = document.querySelector('.search-form');
+const loadMoreBtn = document.querySelector('.load-more');
 
+
+const newsApi = new NewsApi();
+
+loadMoreBtn.addEventListener('click', onLoadMore)
 form.addEventListener('submit', onSubmit);
+
+
+
 function onSubmit(e) {
   e.preventDefault();
   const form = e.currentTarget;
-  const inputValue = form.elements.searchQuery.value;
+  newsApi.searchQuery = form.elements.searchQuery.value.trim();
   console.log(inputValue);
-  fetchPhoto(inputValue).then(({ hits }) => {
+  clearPage();
+
+
+  fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
     if (hits.length === 0) throw new Error('No data')
    
     return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
   })
-    // .then((markup) => console.log(markup))
     .then(updatePage)
     .catch(onError)
   .finally(() => form.reset())
-}
+};
+function onLoadMore() {
+ fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
+    if (hits.length === 0) throw new Error('No data')
+   
+    return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
+  })
+    .then(updatePage)
+  
+};
 
 
 function createMarkUp({ webformatURL, likes, views, comments, downloads }) {
@@ -44,8 +63,13 @@ function createMarkUp({ webformatURL, likes, views, comments, downloads }) {
 </div>`
 };
 
+
+
 function updatePage(markup) {
-  document.querySelector('.gallery').innerHTML = markup
+  document.querySelector('.gallery').insertAdjacentHTML('beforeend', markup)
+} 
+function clearPage() {
+  document.querySelector('.gallery').innerHTML = '';
 } 
 function onError() {
   Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
