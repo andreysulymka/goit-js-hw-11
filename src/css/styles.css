@@ -62,3 +62,6 @@ img:hover {
         border-radius: 10px;
         color: white;
 }
+button.hidden {
+  display: none;
+}

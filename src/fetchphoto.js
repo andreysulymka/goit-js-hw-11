@@ -12,8 +12,15 @@ export default class NewsApi {
      fetchPhoto(photo) {
     return axios.get(`${ENDPOINT}/?key=${KEY}&q=${photo}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.queryPage}`)
         .then((res) => res.data)
-        .then((data) => { this.queryPage += 1; return data });
-};
+        .then((data) => { this.incrementPage(); return data });
+    };
+    resetPage() {
+        this.queryPage = 1;
+    };
+    
+    incrementPage() {
+        this.queryPage += 1;
+    };
 }
 
 

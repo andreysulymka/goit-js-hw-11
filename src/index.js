@@ -3,9 +3,12 @@ import Notiflix from 'notiflix';
 import Axios from 'axios';
 import SimpleLightbox from "simplelightbox";
 import NewsApi from './fetchphoto';
+import LoadmoreBtn from './components/LoadMoreBtn.js';
 
 const form = document.querySelector('.search-form');
-const loadMoreBtn = document.querySelector('.load-more');
+const loadMoreBtn = new LoadmoreBtn('.load-more');
+
+
 
 
 const newsApi = new NewsApi();
@@ -19,11 +22,12 @@ function onSubmit(e) {
   e.preventDefault();
   const form = e.currentTarget;
   newsApi.searchQuery = form.elements.searchQuery.value.trim();
-  console.log(inputValue);
+  console.log(newsApi.searchQuery);
   clearPage();
+  newsApi.resetPage();
 
 
-  fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
+  newsApi.fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
     if (hits.length === 0) throw new Error('No data')
    
     return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
@@ -33,7 +37,7 @@ function onSubmit(e) {
   .finally(() => form.reset())
 };
 function onLoadMore() {
- fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
+ newsApi.fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
     if (hits.length === 0) throw new Error('No data')
    
     return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
