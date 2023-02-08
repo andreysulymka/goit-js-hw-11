@@ -13,37 +13,48 @@ const loadMoreBtn = new LoadmoreBtn('.load-more');
 
 const newsApi = new NewsApi();
 
-loadMoreBtn.addEventListener('click', onLoadMore)
+loadMoreBtn.button.addEventListener('click', onLoadMore)
 form.addEventListener('submit', onSubmit);
 
 
 
-function onSubmit(e) {
+ async function onSubmit(e) {
   e.preventDefault();
   const form = e.currentTarget;
   newsApi.searchQuery = form.elements.searchQuery.value.trim();
   console.log(newsApi.searchQuery);
+
   clearPage();
   newsApi.resetPage();
-
-
-  newsApi.fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
-    if (hits.length === 0) throw new Error('No data')
+   loadMoreBtn.show();
    
-    return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
-  })
-    .then(updatePage)
-    .catch(onError)
-  .finally(() => form.reset())
-};
-function onLoadMore() {
- newsApi.fetchPhoto(newsApi.searchQuery).then(({ hits }) => {
-    if (hits.length === 0) throw new Error('No data')
-   
-    return hits.reduce((markup, hit) => createMarkUp(hit) + markup, '')
-  })
-    .then(updatePage)
+  loadMoreBtn.disable();
   
+   try {
+     const {hits} = await newsApi.fetchPhoto(newsApi.searchQuery);
+     if (hits.length === 0) throw new Error('No data');
+     const markup = hits.reduce((markup, hit) => createMarkUp(hit) + markup, '');
+     
+     updatePage(markup);
+     loadMoreBtn.enable();
+   } catch (err) {
+     onError()
+   }
+   finally { form.reset() };
+
+};
+  
+  
+async function onLoadMore() {
+ loadMoreBtn.disable();
+  
+   
+     const {hits} = await newsApi.fetchPhoto(newsApi.searchQuery);
+     if (hits.length === 0) throw new Error('No data');
+     const markup = hits.reduce((markup, hit) => createMarkUp(hit) + markup, '');
+     
+     updatePage(markup);
+     loadMoreBtn.enable();
 };
 
 
@@ -75,6 +86,7 @@ function updatePage(markup) {
 function clearPage() {
   document.querySelector('.gallery').innerHTML = '';
 } 
-function onError() {
+function onError(err) {
+  console.error(err)
   Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
 }
